@@ -1,0 +1,11 @@
+etcdbk:
+  image: christianbladescb/etcdbk
+  links:
+    - s3
+    - etcd
+  environment:
+    - ETCD_HOSTS=http://etcd:4001
+s3:
+  image: lphoward/fake-s3
+etcd:
+  image: quay.io/coreos/etcd
