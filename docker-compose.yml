@@ -5,7 +5,13 @@ etcdbk:
     - etcd
   environment:
     - ETCD_HOSTS=http://etcd:4001
+    - AWS_ACCESS_KEY_ID=foo
+    - AWS_SECRET_ACCESS_KEY=bar
+    - AWS_S3_BUCKET=etcdbackup
 s3:
   image: lphoward/fake-s3
 etcd:
   image: quay.io/coreos/etcd
+  environment:
+    - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:4001
+    - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:4001
