@@ -25,10 +25,10 @@ func main() {
 
 		OutFilePath string `long:"outfile" short:"o" env:"OUTFILE" description:"Where to write the resulting tarball. '-' for STDOUT"`
 
-		AwsAccessKey  string `long:"aws-access" env:"AWS_ACCESS_KEY_ID"`
-		AwsSecretKey  string `long:"aws-secret" env:"AWS_SECRET_ACCESS_KEY"`
+		AwsAccessKey  string `long:"aws-access" env:"AWS_ACCESS_KEY_ID" description:"Access key of an IAM user with write access to the given bucket"`
+		AwsSecretKey  string `long:"aws-secret" env:"AWS_SECRET_ACCESS_KEY" description:"Secret key of an IAM user with write access to the given bucket"`
 		AwsS3Endpoint string `long:"s3-endpoint" env:"AWS_S3_ENDPOINT" default:"https://s3.amazonaws.com" description:"AWS S3 endpoint. See http://goo.gl/OG2Nkv"`
-		AwsBucket     string `long:"aws-bucket" env:"AWS_S3_BUCKET"`
+		AwsBucket     string `long:"aws-bucket" env:"AWS_S3_BUCKET" description:"Bucket in which to place the archive."`
 	}
 	flags.Parse(&opts)
 
@@ -141,10 +141,9 @@ func (s3w S3Writer) WriteToS3(p []byte) error {
 		AccessKey: s3w.AccessKey,
 		SecretKey: s3w.SecretKey,
 	}
-	path := fmt.Sprintf("%s-%s", s3w.ClusterName, time.Now().UTC().Format(time.RFC3339))
+	path := fmt.Sprintf("%s-%s.tar.gz", s3w.ClusterName, time.Now().UTC().Format(time.RFC3339))
 
 	client := s3.New(auth, aws.Region{S3Endpoint: s3w.Endpoint})
 	bucket := client.Bucket(s3w.Bucket)
-	bucket.Put(path, p, "application/x-gzip", s3.Private, s3.Options{})
-	return nil
+	return bucket.Put(path, p, "application/x-gzip", s3.Private, s3.Options{})
 }
