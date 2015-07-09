@@ -21,49 +21,41 @@ import (
 func main() {
 	var opts struct {
 		EtcdMachines []string `long:"etcd-hosts" short:"e" required:"true" default:"http://127.0.0.1:2379" env:"ETCD_HOSTS" env-delim:"," description:"etcd machines"`
-		ClusterName  string   `long:"cluster-name" short:"n" default:"etcd-cluster" env:"CLUSTER_NAME" description:"Cluster name to use in naming the file in the S3 Bucket"`
 
 		OutFilePath string `long:"outfile" short:"o" env:"OUTFILE" description:"Where to write the resulting tarball. '-' for STDOUT"`
 
+		ClusterName   string `long:"cluster-name" short:"n" default:"etcd-cluster" env:"CLUSTER_NAME" description:"Cluster name to use in naming the file in the S3 Bucket"`
 		AwsAccessKey  string `long:"aws-access" env:"AWS_ACCESS_KEY_ID" description:"Access key of an IAM user with write access to the given bucket"`
 		AwsSecretKey  string `long:"aws-secret" env:"AWS_SECRET_ACCESS_KEY" description:"Secret key of an IAM user with write access to the given bucket"`
 		AwsS3Endpoint string `long:"s3-endpoint" env:"AWS_S3_ENDPOINT" default:"https://s3.amazonaws.com" description:"AWS S3 endpoint. See http://goo.gl/OG2Nkv"`
 		AwsBucket     string `long:"aws-bucket" env:"AWS_S3_BUCKET" description:"Bucket in which to place the archive."`
+
+		Verbose bool `long:"debug" description:"verbose logging"`
 	}
 	flags.Parse(&opts)
 
-	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
-
-	log.Debug("connecting to etcd")
-	client := etcd.NewClient(opts.EtcdMachines)
-	defer client.Close()
-
-	log.Debug("requesting root node")
-	response, err := client.Get("/", false, true)
-	if err != nil {
-		log.WithField("error", err).Fatal("could not retrieve value for key")
+	if opts.Verbose {
+		log.SetLevel(log.DebugLevel)
 	}
 
-	// fill the buffer with tarball
-	buffer := bytes.NewBuffer(nil)
-	gzipWriter := gzip.NewWriter(buffer)
-	w := tar.NewWriter(gzipWriter)
+	if opts.OutFilePath == "" && opts.AwsBucket == "" {
+		log.Fatal("No file path or S3 bucket given. Nothing to do.")
+	}
 
-	writeNode(w, response.Node)
-
-	w.Close()
-	gzipWriter.Close()
+	rootNode := getRootNode(opts.EtcdMachines)
+	buffer := fillTarballBuffer(&rootNode)
 
 	// write to file
 	log.WithField("outpath", opts.OutFilePath).Debug("writing to destination")
 	outWriter, err := getOutfileWriter(opts.OutFilePath)
-	if err != nil {
-		log.WithField("error", err).Fatal("error opening output file")
-	}
 	defer outWriter.Close()
-	if _, err := buffer.WriteTo(outWriter); err != nil {
-		log.WithField("error", err).Warn("Error writing to file")
+	if err != nil {
+		log.WithField("error", err).Error("error opening output file")
+	} else {
+		if _, err := buffer.WriteTo(outWriter); err != nil {
+			log.WithField("error", err).Warn("error writing to file")
+		}
 	}
 
 	log.WithField("bucket", opts.AwsBucket).Debug("saving to bucket")
@@ -76,6 +68,34 @@ func main() {
 		ClusterName: opts.ClusterName,
 	}
 	s3Out.WriteToS3(buffer.Bytes())
+}
+
+func fillTarballBuffer(rootNode *etcd.Node) *bytes.Buffer {
+	buffer := bytes.NewBuffer(nil)
+
+	gzipWriter := gzip.NewWriter(buffer)
+	w := tar.NewWriter(gzipWriter)
+
+	defer w.Close()
+	defer gzipWriter.Close()
+
+	writeNode(w, rootNode)
+
+	return buffer
+}
+
+func getRootNode(machines []string) etcd.Node {
+	log.WithField("etcdhosts", machines).Debug("connecting to etcd cluster")
+	client := etcd.NewClient(machines)
+	defer client.Close()
+
+	log.Debug("requesting root node")
+	response, err := client.Get("/", false, true)
+	if err != nil {
+		log.WithField("error", err).Fatal("could not retrieve value for key")
+	}
+
+	return *response.Node
 }
 
 func writeNode(w *tar.Writer, node *etcd.Node) { // I'm recursive!
