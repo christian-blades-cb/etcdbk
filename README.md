@@ -25,12 +25,18 @@ Usage:
 
 Application Options:
   -e, --etcd-hosts=   etcd machines (http://127.0.0.1:2379) [$ETCD_HOSTS]
-  -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
-  -o, --outfile=      Where to write the resulting tarball. '-' for STDOUT [$OUTFILE]
-      --aws-access=
-      --aws-secret=
-      --s3-endpoint=  AWS S3 endpoint. See http://goo.gl/OG2Nkv (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
-      --aws-bucket=
+  -o, --outfile=      Where to write the resulting tarball. '-' for STDOUT
+                      [$OUTFILE]
+  -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket
+                      (etcd-cluster) [$CLUSTER_NAME]
+      --aws-access=   Access key of an IAM user with write access to the given
+                      bucket [$AWS_ACCESS_KEY_ID]
+      --aws-secret=   Secret key of an IAM user with write access to the given
+                      bucket [$AWS_SECRET_ACCESS_KEY]
+      --s3-endpoint=  AWS S3 endpoint. See http://goo.gl/OG2Nkv
+                      (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
+      --aws-bucket=   Bucket in which to place the archive. [$AWS_S3_BUCKET]
+      --debug         verbose logging
 
 Help Options:
   -h, --help          Show this help message
