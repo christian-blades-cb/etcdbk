@@ -1,6 +1,8 @@
 package main // import "github.com/christian-blades-cb/etcdbk"
 
 import (
+	"github.com/christian-blades-cb/etcdbk/tarball"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/jessevdk/go-flags"
@@ -8,11 +10,8 @@ import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 
-	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"time"
@@ -32,7 +31,9 @@ func main() {
 
 		Verbose bool `long:"debug" description:"verbose logging"`
 	}
-	flags.Parse(&opts)
+	if _, err := flags.Parse(&opts); err != nil {
+		log.Fatal("could not parse options")
+	}
 
 	log.SetOutput(os.Stderr)
 	if opts.Verbose {
@@ -44,19 +45,11 @@ func main() {
 	}
 
 	rootNode := getRootNode(opts.EtcdMachines)
-	buffer := fillTarballBuffer(&rootNode)
+	buffer := tarball.FillTarballBuffer(&rootNode)
 
 	// write to file
 	log.WithField("outpath", opts.OutFilePath).Debug("writing to destination")
-	outWriter, err := getOutfileWriter(opts.OutFilePath)
-	defer outWriter.Close()
-	if err != nil {
-		log.WithField("error", err).Error("error opening output file")
-	} else {
-		if _, err := buffer.WriteTo(outWriter); err != nil {
-			log.WithField("error", err).Warn("error writing to file")
-		}
-	}
+	writeToFile(buffer, opts.OutFilePath)
 
 	log.WithField("bucket", opts.AwsBucket).Debug("saving to bucket")
 	// write to S3
@@ -68,20 +61,6 @@ func main() {
 		ClusterName: opts.ClusterName,
 	}
 	s3Out.WriteToS3(buffer.Bytes())
-}
-
-func fillTarballBuffer(rootNode *etcd.Node) *bytes.Buffer {
-	buffer := bytes.NewBuffer(nil)
-
-	gzipWriter := gzip.NewWriter(buffer)
-	w := tar.NewWriter(gzipWriter)
-
-	defer w.Close()
-	defer gzipWriter.Close()
-
-	writeNode(w, rootNode)
-
-	return buffer
 }
 
 func getRootNode(machines []string) etcd.Node {
@@ -98,56 +77,34 @@ func getRootNode(machines []string) etcd.Node {
 	return *response.Node
 }
 
-func writeNode(w *tar.Writer, node *etcd.Node) { // I'm recursive!
-	log.WithField("key", node.Key).Debug()
-	if node.Dir {
-		for _, subNode := range node.Nodes {
-			writeNode(w, subNode) // see?
-		}
-		return
-	}
-
-	buf := bytes.NewBuffer([]byte(node.Value))
-	expiration := func() string {
-		if node.Expiration == nil {
-			return "never"
-		} else {
-			return node.Expiration.Format(time.RFC3339)
-		}
-	}()
-
-	w.WriteHeader(&tar.Header{
-		Name: node.Key,
-		Mode: 0444,
-		Size: int64(buf.Len()),
-		Xattrs: map[string]string{
-			"ModifiedIndex": fmt.Sprintf("%d", node.ModifiedIndex),
-			"CreatedIndex":  fmt.Sprintf("%d", node.CreatedIndex),
-			"Expiration":    expiration,
-		},
-	})
-	buf.WriteTo(w)
-}
-
-type DiscardCloser struct{}
-
-func (d *DiscardCloser) Write(p []byte) (int, error) {
-	return len(p), nil
-}
-
-func (d *DiscardCloser) Close() error {
-	return nil
-}
-
-func getOutfileWriter(path string) (io.WriteCloser, error) {
+func writeToFile(buff *bytes.Buffer, path string) error {
 	trimmedPath := strings.TrimSpace(path)
 	switch trimmedPath {
 	case "-":
-		return os.Stdout, nil
+		if _, err := buff.WriteTo(os.Stdout); err != nil {
+			log.WithField("error", err).Warn("could not write to stdout")
+			return err
+		}
 	case "":
-		return &DiscardCloser{}, nil
+		log.Debug("empty path. not writing.")
+	default:
+		wc, err := os.Create(path)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error":    err,
+				"filepath": path,
+			}).Warn("could not create file for writing")
+			return err
+		}
+		defer wc.Close()
+
+		if _, err := buff.WriteTo(wc); err != nil {
+			log.WithField("error", err).Warn("could not write to file")
+			return err
+		}
 	}
-	return os.Create(path)
+
+	return nil
 }
 
 type S3Writer struct {
