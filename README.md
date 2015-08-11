@@ -66,7 +66,7 @@ $ etcdbk -o ./my-etcd-backup.tar.gz
 
 The archive at `./my-etcd-backup.tar.gz` will contain a file system corresponding to the keys available in the etcd cluster.
 
-### One-time back to S3
+### One-time backup to S3
 
 ```
 Usage:
@@ -102,7 +102,7 @@ $ etcdbk --cluster-name=my-etcd-cluster --aws-access=ACCESSKEY --aws-secret=SECR
 
 An archive will be saved into the specified bucket. The archive name will be in the format `#{cluster name}-#{time in RFC3339}.tar.gz`.
 
-### Continous back to S3
+### Continous backup to S3
 
 ```
 Usage:
