@@ -61,7 +61,7 @@ Help Options:
 To backup the keys from a cluster with a node running on localhost:
 
 ```shell
-$ etcdbk -o ./my-etcd-backup.tar.gz
+$ etcdbk file -o ./my-etcd-backup.tar.gz
 ```
 
 The archive at `./my-etcd-backup.tar.gz` will contain a file system corresponding to the keys available in the etcd cluster.
@@ -97,7 +97,7 @@ Available commands:
 Assuming you have previously created an **S3 bucket** and an IAM user with **write access** to that bucket:
 
 ```shell
-$ etcdbk --cluster-name=my-etcd-cluster --aws-access=ACCESSKEY --aws-secret=SECRETKEYSAREALWAYSLONGER --s3-endpoint=https://s3.amazonaws.com --aws-bucket=etcdbackups
+$ etcdbk --cluster-name=my-etcd-cluster s3 --aws-access=ACCESSKEY --aws-secret=SECRETKEYSAREALWAYSLONGER --s3-endpoint=https://s3.amazonaws.com --aws-bucket=etcdbackups
 ```
 
 An archive will be saved into the specified bucket. The archive name will be in the format `#{cluster name}-#{time in RFC3339}.tar.gz`.
