@@ -11,6 +11,8 @@ import (
 )
 
 type ToS3 struct {
+	ClusterName string `long:"cluster-name" short:"n" default:"etcd-cluster" env:"CLUSTER_NAME" description:"Cluster name to use in naming the file in the S3 Bucket"`
+
 	AwsAccessKey  string `long:"aws-access" env:"AWS_ACCESS_KEY_ID" description:"Access key of an IAM user with write access to the given bucket"`
 	AwsSecretKey  string `long:"aws-secret" env:"AWS_SECRET_ACCESS_KEY" description:"Secret key of an IAM user with write access to the given bucket"`
 	AwsS3Endpoint string `long:"s3-endpoint" env:"AWS_S3_ENDPOINT" default:"https://s3.amazonaws.com" description:"AWS S3 endpoint. See http://goo.gl/OG2Nkv"`
@@ -118,7 +120,7 @@ func doSnapshot(client *etcd.Client) {
 		SecretKey:   toS3.AwsSecretKey,
 		Endpoint:    toS3.AwsS3Endpoint,
 		Bucket:      toS3.AwsBucket,
-		ClusterName: opts.ClusterName,
+		ClusterName: toS3.ClusterName,
 	}
 	s3Writer.WriteToS3(buffer.Bytes())
 	log.Info("wrote to bucket")

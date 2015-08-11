@@ -19,22 +19,11 @@ Alternatively, a docker image is available at [christianbladescb/etcdbk](https:/
 
 ## Usage
 
-```
-Usage:
-  etcdbk [OPTIONS] <file | s3>
+etcdbk CLI has 3 commands to suit your usecase.
 
-Application Options:
-  -e, --etcd-hosts=   etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
-  -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
-  -v, --debug         verbose logging
-
-Help Options:
-  -h, --help          Show this help message
-
-Available commands:
-  file  Output to file
-  s3    Output to S3 bucket
-```
+* `file` backs up the etcd database to a local file
+* `s3` backs up the etcd database to an S3 bucket
+* `s3 continuous` watches for changes to the etcd database, and backs up on set hard intervals, and set intervals after a change
 
 ### One-time backup to a local file
 
@@ -46,7 +35,6 @@ Output a tarball representing the etcd database to a file on disk.
 
 Application Options:
   -e, --etcd-hosts=   etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
-  -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
   -v, --debug         verbose logging
 
 Help Options:
@@ -75,18 +63,18 @@ Usage:
 Output a tarball representing an etcd database into an S3 bucket
 
 Application Options:
-  -e, --etcd-hosts=      etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
-  -n, --cluster-name=    Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
-  -v, --debug            verbose logging
+  -e, --etcd-hosts=       etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
+  -v, --debug             verbose logging
 
 Help Options:
-  -h, --help             Show this help message
+  -h, --help              Show this help message
 
 [s3 command options]
-          --aws-access=  Access key of an IAM user with write access to the given bucket [$AWS_ACCESS_KEY_ID]
-          --aws-secret=  Secret key of an IAM user with write access to the given bucket [$AWS_SECRET_ACCESS_KEY]
-          --s3-endpoint= AWS S3 endpoint. See http://goo.gl/OG2Nkv (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
-          --aws-bucket=  Bucket in which to place the archive. [$AWS_S3_BUCKET]
+      -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
+          --aws-access=   Access key of an IAM user with write access to the given bucket [$AWS_ACCESS_KEY_ID]
+          --aws-secret=   Secret key of an IAM user with write access to the given bucket [$AWS_SECRET_ACCESS_KEY]
+          --s3-endpoint=  AWS S3 endpoint. See http://goo.gl/OG2Nkv (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
+          --aws-bucket=   Bucket in which to place the archive. [$AWS_S3_BUCKET]
 
 Available commands:
   continuous  Backup to S3 continuously
@@ -111,24 +99,24 @@ Usage:
 Backup an etcd database at regular intervals, or after changes
 
 Application Options:
-  -e, --etcd-hosts=      etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
-  -n, --cluster-name=    Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
-  -v, --debug            verbose logging
+  -e, --etcd-hosts=       etcd machines (http://127.0.0.1:4001) [$ETCD_HOSTS]
+  -v, --debug             verbose logging
 
 Help Options:
-  -h, --help             Show this help message
+  -h, --help              Show this help message
 
 [s3 command options]
 
     Output to S3 bucket:
-          --aws-access=  Access key of an IAM user with write access to the given bucket [$AWS_ACCESS_KEY_ID]
-          --aws-secret=  Secret key of an IAM user with write access to the given bucket [$AWS_SECRET_ACCESS_KEY]
-          --s3-endpoint= AWS S3 endpoint. See http://goo.gl/OG2Nkv (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
-          --aws-bucket=  Bucket in which to place the archive. [$AWS_S3_BUCKET]
+      -n, --cluster-name= Cluster name to use in naming the file in the S3 Bucket (etcd-cluster) [$CLUSTER_NAME]
+          --aws-access=   Access key of an IAM user with write access to the given bucket [$AWS_ACCESS_KEY_ID]
+          --aws-secret=   Secret key of an IAM user with write access to the given bucket [$AWS_SECRET_ACCESS_KEY]
+          --s3-endpoint=  AWS S3 endpoint. See http://goo.gl/OG2Nkv (https://s3.amazonaws.com) [$AWS_S3_ENDPOINT]
+          --aws-bucket=   Bucket in which to place the archive. [$AWS_S3_BUCKET]
 
 [continuous command options]
-          --max-period=  Longest time to wait between snapshots if there are no updates (168h) [$MAX_PERIOD]
-          --min-period=  How long to wait after an update to push the snapshot to S3 (1h) [$MIN_PERIOD]
+          --max-period=   Longest time to wait between snapshots if there are no updates (168h) [$MAX_PERIOD]
+          --min-period=   How long to wait after an update to push the snapshot to S3 (1h) [$MIN_PERIOD]
 ```
 
 ## Alternatives
