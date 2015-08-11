@@ -25,7 +25,7 @@ func FillTarballBuffer(rootNode *etcd.Node) *bytes.Buffer {
 }
 
 func writeNode(w *tar.Writer, node *etcd.Node) { // I'm recursive!
-	log.WithField("key", node.Key).Debug()
+	log.WithField("key", node.Key).Debug("writing to tarball")
 	if node.Dir {
 		for _, subNode := range node.Nodes {
 			writeNode(w, subNode) // see?

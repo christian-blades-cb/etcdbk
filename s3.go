@@ -26,7 +26,7 @@ func (o *ToS3) Execute(args []string) error {
 }
 
 type S3OnInterval struct {
-	MaxPeriod         func(string) `long:"max-period" env:"MAX_PERIOD" description:"Longest time to wait between snapshots if there are no updates" default:"7d"`
+	MaxPeriod         func(string) `long:"max-period" env:"MAX_PERIOD" description:"Longest time to wait between snapshots if there are no updates" default:"168h"`
 	MinPeriod         func(string) `long:"min-period" env:"MIN_PERIOD" default:"1h" description:"How long to wait after an update to push the snapshot to S3"`
 	MaxPeriodDuration time.Duration
 	MinPeriodDuration time.Duration
@@ -37,11 +37,14 @@ var s3OnInterval S3OnInterval
 func (o *S3OnInterval) Execute(args []string) error {
 	client := etcd.NewClient(opts.EtcdMachines)
 	events := make(chan *etcd.Response)
-	client.Watch("/", 0, true, events, nil)
+	go client.Watch("/", 0, true, events, nil)
+	log.Info("listening for changes")
 
-	var snapshotCondition sync.Cond
+	var snapshotMutex sync.Mutex
+	snapshotCondition := sync.NewCond(&snapshotMutex)
 	go func() {
 		for {
+			snapshotCondition.L.Lock()
 			snapshotCondition.Wait()
 
 			log.Debug("snapshot triggered, waiting for minperiod")
@@ -49,6 +52,7 @@ func (o *S3OnInterval) Execute(args []string) error {
 
 			log.Debug("minperiod expired, taking a snapshot")
 			doSnapshot(client)
+			snapshotCondition.L.Unlock()
 		}
 	}()
 
@@ -71,7 +75,7 @@ func init() {
 			log.WithFields(log.Fields{
 				"error":    err,
 				"duration": dur,
-			})
+			}).Fatal("could not parse maxperiod")
 		} else {
 			s3OnInterval.MaxPeriodDuration = pDur
 		}
@@ -82,7 +86,7 @@ func init() {
 			log.WithFields(log.Fields{
 				"error":    err,
 				"duration": dur,
-			})
+			}).Fatal("could not parse minperiod")
 		} else {
 			s3OnInterval.MinPeriodDuration = pDur
 		}
@@ -117,6 +121,7 @@ func doSnapshot(client *etcd.Client) {
 		ClusterName: opts.ClusterName,
 	}
 	s3Writer.WriteToS3(buffer.Bytes())
+	log.Info("wrote to bucket")
 }
 
 type S3Writer struct {
