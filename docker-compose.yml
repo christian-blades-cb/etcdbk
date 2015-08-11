@@ -8,6 +8,8 @@ etcdbk:
     - AWS_ACCESS_KEY_ID=foo
     - AWS_SECRET_ACCESS_KEY=bar
     - AWS_S3_BUCKET=etcdbackup
+    - MIN_PERIOD=30s
+  command: -v s3 continuous
 s3:
   image: lphoward/fake-s3
 etcd:

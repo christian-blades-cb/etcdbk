@@ -7,18 +7,16 @@ import (
 )
 
 var opts struct {
-	EtcdMachines []string   `long:"etcd-hosts" short:"e" required:"true" default:"http://127.0.0.1:2379" env:"ETCD_HOSTS" env-delim:"," description:"etcd machines"`
-	ClusterName  string     `long:"cluster-name" short:"n" default:"etcd-cluster" env:"CLUSTER_NAME" description:"Cluster name to use in naming the file in the S3 Bucket"`
-	Verbose      func(bool) `long:"debug" description:"verbose logging"`
+	EtcdMachines []string `long:"etcd-hosts" short:"e" required:"true" default:"http://127.0.0.1:4001" env:"ETCD_HOSTS" env-delim:"," description:"etcd machines"`
+	ClusterName  string   `long:"cluster-name" short:"n" default:"etcd-cluster" env:"CLUSTER_NAME" description:"Cluster name to use in naming the file in the S3 Bucket"`
+	Verbose      func()   `long:"debug" short:"v" description:"verbose logging"`
 }
 
 var parser = flags.NewParser(&opts, flags.Default)
 
 func init() {
-	opts.Verbose = func(verbose bool) {
-		if verbose {
-			log.SetLevel(log.DebugLevel)
-		}
+	opts.Verbose = func() {
+		log.SetLevel(log.DebugLevel)
 	}
 }
 
