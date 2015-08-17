@@ -1,0 +1,22 @@
+[Unit]
+Description=Etcdbk
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+TimeoutStartSec=10 min
+User=core
+
+ExecStartPre=/usr/bin/env bash -c "etcdctl get /environments/%p > '/tmp/%p.env'"
+
+ExecStartPre=-/usr/bin/env docker stop "%p-%i"
+ExecStartPre=-/usr/bin/env docker rm "%p-%i"
+ExecStartPre=/usr/bin/env docker pull christianbladescb/etcdbk
+
+ExecStart=/usr/bin/env docker run \
+  --name='%p-%i' \
+  --env-file="/tmp/%p.env" \
+  christianbladescb/etcdbk
+
+ExecStop=-/usr/bin/env docker stop "%p-%i"
