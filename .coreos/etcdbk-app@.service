@@ -17,6 +17,6 @@ ExecStartPre=/usr/bin/env docker pull christianbladescb/etcdbk
 ExecStart=/usr/bin/env docker run \
   --name='%p-%i' \
   --env-file="/tmp/%p.env" \
-  christianbladescb/etcdbk
+  christianbladescb/etcdbk s3 continuous
 
 ExecStop=-/usr/bin/env docker stop "%p-%i"
