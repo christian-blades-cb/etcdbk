@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/jessevdk/go-flags"
+	"os"
 )
 
 var opts struct {
@@ -14,6 +15,7 @@ var opts struct {
 var parser = flags.NewParser(&opts, flags.Default)
 
 func init() {
+	log.SetOutput(os.Stderr)
 	opts.Verbose = func() {
 		log.SetLevel(log.DebugLevel)
 	}

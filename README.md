@@ -7,8 +7,6 @@ Etcdbk is a tool for backing up the values in a live etcd cluster.
 
 Etcdbk generates a tarball (tar.gz) with paths matching the keys in your etcd cluster. Etcdbk uses the etcd API instead of direct access to the etcd data directory, thus allowing backups to be generated on machines remote to the target cluster, or from within application containers.
 
-**Caveat:** Because etcdbk only adds keys to resulting artifact, etcd paths that have no keys will be lost.
-
 ## Installation
 
 ```shell
