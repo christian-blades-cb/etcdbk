@@ -1,5 +1,4 @@
-# etcdbk
-[![](https://badge.imagelayers.io/christianbladescb/etcdbk:latest.svg)](https://imagelayers.io/?images=christianbladescb/etcdbk:latest 'Get your own badge on imagelayers.io') [![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](http://www.repostatus.org/badges/latest/inactive.svg)](http://www.repostatus.org/#inactive)
+# etcdbk [![](https://badge.imagelayers.io/christianbladescb/etcdbk:latest.svg)](https://imagelayers.io/?images=christianbladescb/etcdbk:latest 'Get your own badge on imagelayers.io') [![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](http://www.repostatus.org/badges/latest/inactive.svg)](http://www.repostatus.org/#inactive)
 
 
 [![](http://dockeri.co/image/christianbladescb/etcdbk)](https://registry.hub.docker.com/u/christianbladescb/etcdbk)
